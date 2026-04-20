@@ -5,6 +5,7 @@ import com.openai.models.chat.completions.ChatCompletion.Choice;
 import com.openai.models.chat.completions.ChatCompletionCreateParams;
 import org.json.JSONObject;
 import tools.ReadFileTool;
+import tools.ToolRegistry;
 
 void main(String[] args) {
     if (args.length < 2 || !"-p".equals(args[0])) {
@@ -23,6 +24,8 @@ void main(String[] args) {
     if (apiKey == null || apiKey.isEmpty()) {
         throw new RuntimeException("OPENROUTER_API_KEY is not set");
     }
+
+    var toolRegistry = new ToolRegistry();
 
     OpenAIClient client = OpenAIOkHttpClient.builder()
         .apiKey(apiKey)
@@ -46,25 +49,14 @@ void main(String[] args) {
     Choice choice = choices.getFirst();
 
     if (choice.message().toolCalls().isPresent()) {
-        var toolCalls = choice.message().toolCalls().get();
+        var toolCall = choice.message().toolCalls().get().getFirst();
 
-        var toolCall = toolCalls.getFirst();
+        var tool = toolRegistry.getTool(toolCall);
 
-        if (toolCall.isFunction()
-            && toolCall.function().get().function().name().equals(ReadFileTool.class.getSimpleName())) {
-            var arguments = toolCall.function().get().function().arguments();
-            var argument = new JSONObject(arguments);
-            var filePath = argument.getString("file_path");
-
-            try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
-                String line;
-
-                while ((line = br.readLine()) != null) {
-                    System.out.println(line);
-                }
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
+        if (tool.isPresent()) {
+            tool.get().execute(toolCall.function().get());
+        } else {
+            throw new RuntimeException("Unknown tool: " + toolCall.function().get().function().name());
         }
     } else {
         System.out.print(choice.message().content().orElse(""));
