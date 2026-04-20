@@ -1,7 +1,9 @@
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
 import com.openai.models.chat.completions.ChatCompletion;
+import com.openai.models.chat.completions.ChatCompletion.Choice;
 import com.openai.models.chat.completions.ChatCompletionCreateParams;
+import org.json.JSONObject;
 import tools.ReadFileTool;
 
 void main(String[] args) {
@@ -35,9 +37,36 @@ void main(String[] args) {
             .build()
     );
 
-    if (response.choices().isEmpty()) {
+    List<Choice> choices = response.choices();
+
+    if (choices.isEmpty()) {
         throw new RuntimeException("no choices in response");
     }
 
-    System.out.print(response.choices().get(0).message().content().orElse(""));
+    Choice choice = choices.getFirst();
+
+    if (choice.message().toolCalls().isPresent()) {
+        var toolCalls = choice.message().toolCalls().get();
+
+        var toolCall = toolCalls.getFirst();
+
+        if (toolCall.isFunction()
+            && toolCall.function().get().function().name().equals(ReadFileTool.class.getSimpleName())) {
+            var arguments = toolCall.function().get().function().arguments();
+            var argument = new JSONObject(arguments);
+            var filePath = argument.getString("file_path");
+
+            try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+                String line;
+
+                while ((line = br.readLine()) != null) {
+                    System.out.println(line);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    } else {
+        System.out.print(choice.message().content().orElse(""));
+    }
 }
