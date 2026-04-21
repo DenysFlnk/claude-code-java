@@ -19,16 +19,15 @@ public class ReadFileTool implements Tool {
     public String execute(ChatCompletionMessageFunctionToolCall toolCall) {
         var arguments = toolCall.function().arguments();
         var argument = new JSONObject(arguments);
-        var filePath = argument.getString("file_path");
+        var path = argument.getString("file_path");
 
         var result = new StringBuilder();
 
-        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
             String line;
 
             while ((line = br.readLine()) != null) {
                 result.append(line).append("\n");
-                System.out.println(line);
             }
         } catch (IOException e) {
             throw new RuntimeException(e);

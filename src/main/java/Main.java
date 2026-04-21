@@ -3,7 +3,10 @@ import com.openai.client.okhttp.OpenAIOkHttpClient;
 import com.openai.models.chat.completions.ChatCompletion;
 import com.openai.models.chat.completions.ChatCompletion.Choice;
 import com.openai.models.chat.completions.ChatCompletionCreateParams;
-import org.json.JSONObject;
+import com.openai.models.chat.completions.ChatCompletionDeveloperMessageParam;
+import com.openai.models.chat.completions.ChatCompletionMessageParam;
+import com.openai.models.chat.completions.ChatCompletionToolMessageParam;
+import com.openai.models.chat.completions.ChatCompletionUserMessageParam;
 import tools.ReadFileTool;
 import tools.ToolRegistry;
 
@@ -32,33 +35,38 @@ void main(String[] args) {
         .baseUrl(baseUrl)
         .build();
 
-    ChatCompletion response = client.chat().completions().create(
-        ChatCompletionCreateParams.builder()
-            .model("anthropic/claude-haiku-4.5")
-            .addUserMessage(prompt)
-            .addTool(ReadFileTool.class)
-            .build()
-    );
+    var createParamsBuilder = ChatCompletionCreateParams.builder()
+        .model("anthropic/claude-haiku-4.5")
+        .addUserMessage(prompt)
+        .addTool(ReadFileTool.class);
 
-    List<Choice> choices = response.choices();
+    while (true) {
+        ChatCompletion response = client.chat().completions().create(createParamsBuilder.build());
 
-    if (choices.isEmpty()) {
-        throw new RuntimeException("no choices in response");
-    }
+        List<Choice> choices = response.choices();
 
-    Choice choice = choices.getFirst();
-
-    if (choice.message().toolCalls().isPresent()) {
-        var toolCall = choice.message().toolCalls().get().getFirst();
-
-        var tool = toolRegistry.getTool(toolCall);
-
-        if (tool.isPresent()) {
-            tool.get().execute(toolCall.function().get());
-        } else {
-            throw new RuntimeException("Unknown tool: " + toolCall.function().get().function().name());
+        if (choices.isEmpty()) {
+            throw new RuntimeException("no choices in response");
         }
-    } else {
-        System.out.print(choice.message().content().orElse(""));
+
+        Choice choice = choices.getFirst();
+        createParamsBuilder.addMessage(choice.message());
+
+        if (choice.message().toolCalls().isPresent()) {
+            choice.message().toolCalls().get().forEach(toolCall -> {
+                var tool = toolRegistry.getTool(toolCall).orElseThrow(
+                    () -> new RuntimeException("Unknown tool: " + toolCall.function().get().function().name()));
+
+                var result = tool.execute(toolCall.function().get());
+
+                createParamsBuilder.addMessage(ChatCompletionToolMessageParam.builder()
+                    .toolCallId(toolCall.function().get().id())
+                    .contentAsJson(result)
+                    .build());
+            });
+        } else {
+            System.out.print(choice.message().content().orElse(""));
+            break;
+        }
     }
 }
