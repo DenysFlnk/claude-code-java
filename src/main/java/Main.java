@@ -25,8 +25,6 @@ void main(String[] args) {
         throw new RuntimeException("OPENROUTER_API_KEY is not set");
     }
 
-    var toolRegistry = new ToolRegistry();
-
     OpenAIClient client = OpenAIOkHttpClient.builder()
         .apiKey(apiKey)
         .baseUrl(baseUrl)
@@ -34,8 +32,10 @@ void main(String[] args) {
 
     var createParamsBuilder = ChatCompletionCreateParams.builder()
         .model("anthropic/claude-haiku-4.5")
-        .addUserMessage(prompt)
-        .addTool(ReadFileTool.class);
+        .addUserMessage(prompt);
+
+    var toolRegistry = new ToolRegistry();
+    toolRegistry.getAvailableTools().forEach(tool -> createParamsBuilder.addTool(tool.getClass()));
 
     while (true) {
         ChatCompletion response = client.chat().completions().create(createParamsBuilder.build());

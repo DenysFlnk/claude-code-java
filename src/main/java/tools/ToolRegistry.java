@@ -1,6 +1,7 @@
 package tools;
 
 import com.openai.models.chat.completions.ChatCompletionMessageToolCall;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -20,5 +21,9 @@ public class ToolRegistry {
         }
 
         return Optional.ofNullable(tools.get(toolCall.function().get().function().name()));
+    }
+
+    public Collection<Tool<?>> getAvailableTools() {
+        return tools.values();
     }
 }
