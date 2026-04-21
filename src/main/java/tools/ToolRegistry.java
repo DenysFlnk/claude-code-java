@@ -7,13 +7,14 @@ import java.util.Optional;
 
 public class ToolRegistry {
 
-    private final Map<String, Tool> tools = new HashMap<>();
+    private final Map<String, Tool<?>> tools = new HashMap<>();
 
     public ToolRegistry() {
         tools.put(ReadFileTool.class.getSimpleName(), new ReadFileTool());
+        tools.put(WriteFileTool.class.getSimpleName(), new WriteFileTool());
     }
 
-    public Optional<Tool> getTool(ChatCompletionMessageToolCall toolCall) {
+    public Optional<Tool<?>> getTool(ChatCompletionMessageToolCall toolCall) {
         if (!toolCall.isFunction()) {
             return Optional.empty();
         }

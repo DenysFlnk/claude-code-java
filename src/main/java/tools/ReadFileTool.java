@@ -10,7 +10,7 @@ import java.io.IOException;
 import org.json.JSONObject;
 
 @JsonClassDescription("Read and return the contents of a file")
-public class ReadFileTool implements Tool {
+public class ReadFileTool implements Tool<String> {
 
     @JsonPropertyDescription("The path to the file to read")
     @JsonProperty("file_path")
@@ -30,7 +30,7 @@ public class ReadFileTool implements Tool {
                 result.append(line).append("\n");
             }
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            return "Failed to read a file. Reason: " + e.getMessage();
         }
 
         return result.toString();

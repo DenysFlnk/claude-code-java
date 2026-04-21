@@ -2,7 +2,7 @@ package tools;
 
 import com.openai.models.chat.completions.ChatCompletionMessageFunctionToolCall;
 
-public interface Tool {
+public interface Tool<T> {
 
-    String execute(ChatCompletionMessageFunctionToolCall toolCall);
+    T execute(ChatCompletionMessageFunctionToolCall toolCall);
 }
