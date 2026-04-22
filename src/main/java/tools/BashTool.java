@@ -21,15 +21,14 @@ public class BashTool implements Tool<String> {
     @Override
     public String execute(ChatCompletionMessageFunctionToolCall toolCall) {
         var arguments = new JSONObject(toolCall.function().arguments());
-        var toolCommand = arguments.getString("command");
+        var toolCommand = arguments.getString("command").split(" ");
 
         var result = new StringBuilder();
 
         try {
             System.out.println("Executing command: " + toolCommand);
-            var processBuilder = new ProcessBuilder();
-            var process =
-                processBuilder.directory(Paths.get("").toAbsolutePath().toFile()).command(toolCommand).start();
+            var processBuilder = new ProcessBuilder(toolCommand);
+            var process = processBuilder.start();
             process.waitFor();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
