@@ -27,7 +27,7 @@ public class ReadFileTool implements Tool<String> {
             String line;
 
             while ((line = br.readLine()) != null) {
-                result.append(line).append("\n");
+                result.append(line).append(System.lineSeparator());
             }
         } catch (IOException e) {
             return "Failed to read a file. Reason: " + e.getMessage();

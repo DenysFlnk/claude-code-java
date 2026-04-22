@@ -4,7 +4,6 @@ import com.openai.models.chat.completions.ChatCompletion;
 import com.openai.models.chat.completions.ChatCompletion.Choice;
 import com.openai.models.chat.completions.ChatCompletionCreateParams;
 import com.openai.models.chat.completions.ChatCompletionToolMessageParam;
-import tools.ReadFileTool;
 import tools.ToolRegistry;
 
 void main(String[] args) {

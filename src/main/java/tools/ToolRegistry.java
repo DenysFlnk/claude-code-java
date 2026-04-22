@@ -13,6 +13,7 @@ public class ToolRegistry {
     public ToolRegistry() {
         tools.put(ReadFileTool.class.getSimpleName(), new ReadFileTool());
         tools.put(WriteFileTool.class.getSimpleName(), new WriteFileTool());
+        tools.put(BashTool.class.getSimpleName(), new BashTool());
     }
 
     public Optional<Tool<?>> getTool(ChatCompletionMessageToolCall toolCall) {
