@@ -40,9 +40,10 @@ public class BashTool implements Tool<String> {
             }
 
         } catch (IOException | InterruptedException e) {
+            System.out.println("Error while executing bash command: " + e.getMessage());
             return "Error while executing bash command: " + e.getMessage();
         }
-
+        System.out.println(result);
         return result.toString();
     }
 
