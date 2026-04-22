@@ -19,7 +19,7 @@ public class BashTool implements Tool<String> {
     @Override
     public String execute(ChatCompletionMessageFunctionToolCall toolCall) {
         var arguments = new JSONObject(toolCall.function().arguments());
-        var toolCommand = arguments.getString("toolCommand");
+        var toolCommand = arguments.getString("command");
 
         var result = new StringBuilder();
 
