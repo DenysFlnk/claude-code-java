@@ -24,8 +24,9 @@ public class BashTool implements Tool<String> {
         var result = new StringBuilder();
 
         try {
-            var processBuilder = new ProcessBuilder(toolCommand);
-            var process = processBuilder.start();
+            var processBuilder = new ProcessBuilder();
+            var process = processBuilder.command(toolCommand).start();
+            process.waitFor();
 
             BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
@@ -34,7 +35,7 @@ public class BashTool implements Tool<String> {
                 result.append(line).append(System.lineSeparator());
             }
 
-        } catch (IOException e) {
+        } catch (IOException | InterruptedException e) {
             return "Error while executing bash command: " + e.getMessage();
         }
 
